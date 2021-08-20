@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=RasPad Auto Rotator
+Comment=Auto rotate your RasPad             
+Exec=/usr/local/bin/raspad-auto-rotator calibrate
+Icon=display-brightness-symbolic
+Terminal=true
+StartupNotify=true
+Type=Application

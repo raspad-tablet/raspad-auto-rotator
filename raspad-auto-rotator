@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+from sh3001 import Sh3001
+
+import time
+from math import asin
+import math
+import sys
+from sh3001.filedb import fileDB
+import os
+
+USER = os.getenv("SUDO_USER")
+if USER == None:
+    from os.path import expanduser
+    HOME = expanduser("~")
+else:
+    HOME = "/home/%s" % USER
+
+sensor = Sh3001(db='%s/.config/raspad-auto-rotator/config' % HOME)
+db = fileDB(db='%s/.config/raspad-auto-rotator/config' % HOME)
+
+def run_command(cmd=""):
+    import subprocess
+    p = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = p.stdout.read().decode('utf-8')
+    status = p.poll()
+    return status, result
+
+def usage():
+    print("Usage raspad-auto-rotator [calibrate]")
+    quit()
+
+def calibrate(reset=False):
+    if reset:
+        sensor.acc_max = [0, 0, 0]
+        sensor.acc_min = [0, 0, 0]
+        sensor.acc_offset = [0, 0, 0]
+    try:
+        print('RasPad Auto Rotator Calibration start!')
+        print('Rotate the device for 720 degree in all 3 axis')
+        print('Crtl + C to quit if finished')
+        while True:
+            sensor.calibrate('acc')
+    except KeyboardInterrupt:
+        print("")
+        sensor.set_offset()
+        print("Calibrate successfully")
+        print('Offset: %s' % sensor.acc_offset)
+        run_command("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
+        run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }')")
+        run_command("raspad-auto-rotator & 2>&1 1>/dev/temp")
+        quit()
+
+def rotate(direction):
+    if direction == "normal":
+        display = "normal"
+        touch = "1 0 0 0 1 0 0 0 1"
+    elif direction == "inverted":
+        display = "inverted"
+        touch = "-1 0 1 0 -1 1 0 0 1"
+    elif direction == "left":
+        display = "left"
+        touch = "0 -1 1 1 0 0 0 0 1"
+    elif direction == "right":
+        display = "right"
+        touch = "0 1 0 -1 0 1 0 0 1"
+    run_command("xrandr --output HDMI-1 --rotate %s" % display)
+    run_command("xinput --set-prop 'ILITEK ILITEK-TP' 'Coordinate Transformation Matrix' %s" % touch)
+    run_command("xinput --set-prop 'HID 222a:0001' 'Coordinate Transformation Matrix'%s" % touch)
+
+def main():
+    if len(sys.argv) >= 2:
+        if sys.argv[1] == "calibrate":
+            reset = False
+            if len(sys.argv) >= 3:
+                sys.argv[2] == "reset"
+                reset = True
+            calibrate(reset=reset)
+        else:
+            usage()
+
+    rotate_angle = db.get("rotate_angle", "90")
+
+    while True:
+        try:
+            acc_list = sensor.sh3001_getimudata('acc','xyz')
+        except IOError:
+            print("read module error.")
+            time.sleep(1)
+            continue
+        acc_list = [min(2046,i) for i in acc_list]
+        acc_list = [max(-2046,i) for i in acc_list]
+        current_angle_x = (asin(acc_list[0] / 2046.0)) / math.pi * 180
+        current_angle_y = (asin(acc_list[1] / 2046.0)) / math.pi * 180
+        time.sleep(0.1)
+        if current_angle_y > 45:
+            # print("normal")
+            rotate("normal")
+        elif current_angle_y < -45:
+            # print("inverted")
+            rotate("inverted")
+        elif rotate_angle == "90":
+            if current_angle_x > 45:
+                # print("left")
+                rotate("left")
+            elif current_angle_x < -45:
+                # print("right")
+                rotate("right")
+        time.sleep(1)
+
+if __name__ == '__main__':
+    main()
