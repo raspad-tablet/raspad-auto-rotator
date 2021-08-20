@@ -10,7 +10,7 @@ USER = os.getenv("SUDO_USER")
 if USER == None:
     print("You must run this with sudo")
     quit()
-
+isreboot = False
 usage = '''
 Usage:
     sudo python3 install.py [option]
@@ -21,6 +21,7 @@ Options:
     -h         --help       Show this help text and exit
 '''
 def install():
+    global isreboot
     options = []
     if len(sys.argv) > 1:
         options = sys.argv[1:]
@@ -86,8 +87,7 @@ def install():
             select = input("Installation needs to reboot. Do you want to reboot right now? (y/N): ")
             if select.lower() == "y":
                 print("Reboot!")
-                time.sleep(1)
-                run_command("reboot")
+                isreboot = True
             else:
                 print("Canceled")
     else:
@@ -98,8 +98,7 @@ def install():
         sys.exit(1)
 
 def cleanup():
-    do(msg="cleanup",
-        cmd='run_command("rm -rf python-sh3001")')
+    run_command("rm -rf python-sh3001")
 
 class Modules(object):
     ''' 
@@ -246,6 +245,9 @@ if __name__ == "__main__":
         print("Canceled.")
     finally:
         cleanup()
+        if isreboot:
+            time.sleep(1)
+            run_command("reboot")
 
 # if __name__ == "__main__":
 #     test()
