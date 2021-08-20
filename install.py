@@ -4,7 +4,7 @@ import time
 
 errors = []
 
-avaiable_options = ['-h', '--help', '--no-dep']
+avaiable_options = ['-h', '--help', '--no-dep', '--no-reboot']
 
 USER = os.getenv("SUDO_USER")
 if USER == None:
@@ -16,8 +16,9 @@ Usage:
     sudo python3 install.py [option]
 
 Options:
-               --no-dep    Do not download dependencies
-    -h         --help      Show this help text and exit
+               --no-dep     Do not download dependencies
+               --no-reboot  Do not ask for reboot
+    -h         --help       Show this help text and exit
 '''
 def install():
     options = []
@@ -81,13 +82,14 @@ def install():
 
     if len(errors) == 0:
         print("\n\n========================================\nFinished! A calibration window will pop up on your next boot up.")
-        select = input("Installation needs to reboot. Do you want to reboot right now? (y/N): ")
-        if select.lower() == "y":
-            print("Reboot!")
-            time.sleep(1)
-            run_command("reboot")
-        else:
-            print("Canceled")
+        if "--no-reboot" not in options:
+            select = input("Installation needs to reboot. Do you want to reboot right now? (y/N): ")
+            if select.lower() == "y":
+                print("Reboot!")
+                time.sleep(1)
+                run_command("reboot")
+            else:
+                print("Canceled")
     else:
         print("\n\nError happened in install process:")
         for error in errors:

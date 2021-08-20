@@ -36,7 +36,10 @@ def calibrate(reset=False):
         sensor.acc_min = [0, 0, 0]
         sensor.acc_offset = [0, 0, 0]
     try:
-        print('RasPad Auto Rotator Calibration start!')
+        print('RasPad Auto Rotator Calibration!')
+        print('The Accel SHIM need to calibrate before use, or you might encounter incorrect screen rotation')
+        print('To calibrate again or maybe later, next time run `raspad-auto-rotator calibrate`')
+        print('')
         print('Rotate the device for 720 degree in all 3 axis')
         print('Crtl + C to quit if finished')
         while True:
