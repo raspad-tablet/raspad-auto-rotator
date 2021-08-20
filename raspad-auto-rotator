@@ -68,6 +68,7 @@ def rotate(direction):
         display = "right"
         touch = "0 1 0 -1 0 1 0 0 1"
     run_command("xrandr --output HDMI-1 --rotate %s" % display)
+    # get name from `xinput -list`
     run_command("xinput --set-prop 'ILITEK ILITEK-TP' 'Coordinate Transformation Matrix' %s" % touch)
     run_command("xinput --set-prop 'HID 222a:0001' 'Coordinate Transformation Matrix'%s" % touch)
 

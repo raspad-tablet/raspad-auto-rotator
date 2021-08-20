@@ -40,6 +40,8 @@ def install():
             cmd='run_command("apt-get update")')
         do(msg="install i2c-tools",
             cmd='run_command("apt-get install i2c-tools -y")')
+        do(msg="install xinput",
+            cmd='run_command("apt-get install xinput -y")')
 
     print("Setup interfaces")
     do(msg="turn on I2C",
