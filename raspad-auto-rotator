@@ -49,9 +49,9 @@ def calibrate(reset=False):
         sensor.set_offset()
         print("Calibrate successfully")
         print('Offset: %s' % sensor.acc_offset)
-        run_command("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
-        run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }')")
-        run_command("raspad-auto-rotator & 2>&1 1>/dev/null")
+        print("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
+        # run_command("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
+        # run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }') && raspad-auto-rotator & 2>&1 1>/dev/null")
         quit()
 
 def rotate(direction):

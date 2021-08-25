@@ -66,6 +66,9 @@ def install():
 
     if not os.path.isdir("/home/%s/.config/autostart"%USER):
         do(msg="mkdir autostart", cmd='run_command("mkdir /home/%s/.config/autostart/")'%USER)
+        do(msg="change owner",
+            cmd='run_command("chown -R pi:pi /home/%s/.config/autostart/")'%USER)
+
     do(msg="copy autostart",
         cmd='run_command("cp ./raspad-auto-rotator.desktop /home/%s/.config/autostart")'%USER)
     do(msg="change owner",
