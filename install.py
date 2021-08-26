@@ -2,6 +2,8 @@
 import os, sys
 import time
 
+# AUTOSTART_DIR = "/home/%s/.config/autostart/" % USER
+AUTOSTART_DIR = "/etc/xdg/autostart/"
 errors = []
 
 avaiable_options = ['-h', '--help', '--no-dep', '--no-reboot']
@@ -64,19 +66,20 @@ def install():
     do(msg="change mode",
         cmd='run_command("chmod -R 700 /home/%s/.config/raspad-auto-rotator/")'%USER)
 
-    if not os.path.isdir("/home/%s/.config/autostart"%USER):
-        do(msg="mkdir autostart", cmd='run_command("mkdir /home/%s/.config/autostart/")'%USER)
-        do(msg="change owner",
-            cmd='run_command("chown -R pi:pi /home/%s/.config/autostart/")'%USER)
+    # AutoStart
+    if not os.path.isdir("%s" % AUTOSTART_DIR):
+        do(msg="mkdir autostart", cmd='run_command("mkdir %s/")' % AUTOSTART_DIR)
+        # do(msg="change owner",
+        #     cmd='run_command("chown -R pi:pi %s/")' % AUTOSTART_DIR)
 
     do(msg="copy autostart",
-        cmd='run_command("cp ./raspad-auto-rotator.desktop /home/%s/.config/autostart")'%USER)
-    do(msg="change owner",
-        cmd='run_command("chown -R pi:pi /home/%s/.config/autostart/raspad-auto-rotator.desktop")'%USER)
-    do(msg="copy autostart",
-        cmd='run_command("cp ./raspad-auto-rotator-first-calibrate.desktop /home/%s/.config/autostart")'%USER)
-    do(msg="change owner",
-        cmd='run_command("chown -R pi:pi /home/%s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop")'%USER)
+        cmd='run_command("cp ./raspad-auto-rotator.desktop %s")' % AUTOSTART_DIR)
+    # do(msg="change owner",
+    #     cmd='run_command("chown -R pi:pi %s/raspad-auto-rotator.desktop")' % AUTOSTART_DIR)
+    # do(msg="copy autostart",
+    #     cmd='run_command("cp ./raspad-auto-rotator-first-calibrate.desktop %s")' % AUTOSTART_DIR)
+    # do(msg="change owner",
+    #     cmd='run_command("chown -R pi:pi %s/raspad-auto-rotator-first-calibrate.desktop")' % AUTOSTART_DIR)
 
     do(msg="Get SH3001 library",
         cmd='run_command("git clone https://github.com/sunfounder/python-sh3001.git")')
@@ -87,7 +90,7 @@ def install():
     os.chdir("../")
 
     if len(errors) == 0:
-        print("\n\n========================================\nFinished! A calibration window will pop up on your next boot up.")
+        print("\n\n========================================\n")
         if "--no-reboot" not in options:
             select = input("Installation needs to reboot. Do you want to reboot right now? (y/N): ")
             if select.lower() == "y":

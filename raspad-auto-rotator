@@ -8,7 +8,9 @@ import sys
 from sh3001.filedb import fileDB
 import os
 
+AUTOSTART_DIR = "/etc/xdg/autostart/"
 USER = os.getenv("SUDO_USER")
+
 if USER == None:
     from os.path import expanduser
     HOME = expanduser("~")
@@ -30,29 +32,29 @@ def usage():
     print("Usage raspad-auto-rotator [calibrate]")
     quit()
 
-def calibrate(reset=False):
-    if reset:
-        sensor.acc_max = [0, 0, 0]
-        sensor.acc_min = [0, 0, 0]
-        sensor.acc_offset = [0, 0, 0]
-    try:
-        print('RasPad Auto Rotator Calibration!')
-        print('The Accel SHIM need to calibrate before use, \nor you might encounter incorrect screen rotation')
-        print('To calibrate again or maybe later, next time run `raspad-auto-rotator calibrate`')
-        print('')
-        print('Rotate the device for 720 degree in all 3 axis')
-        print('Crtl + C to quit if finished')
-        while True:
-            sensor.calibrate('acc')
-    except KeyboardInterrupt:
-        print("")
-        sensor.set_offset()
-        print("Calibrate successfully")
-        print('Offset: %s' % sensor.acc_offset)
-        print("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
-        # run_command("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
-        # run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }') && raspad-auto-rotator & 2>&1 1>/dev/null")
-        quit()
+# def calibrate(reset=False):
+#     if reset:
+#         sensor.acc_max = [0, 0, 0]
+#         sensor.acc_min = [0, 0, 0]
+#         sensor.acc_offset = [0, 0, 0]
+#     try:
+#         print('RasPad Auto Rotator Calibration!')
+#         print('The Accel SHIM need to calibrate before use, \nor you might encounter incorrect screen rotation')
+#         print('To calibrate again or maybe later, next time run `raspad-auto-rotator calibrate`')
+#         print('')
+#         print('Rotate the device for 720 degree in all 3 axis')
+#         print('Crtl + C to quit if finished')
+#         while True:
+#             sensor.calibrate('acc')
+#     except KeyboardInterrupt:
+#         print("")
+#         sensor.set_offset()
+#         print("Calibrate successfully")
+#         print('Offset: %s' % sensor.acc_offset)
+#         # print("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
+#         run_command("sudo rm %s/raspad-auto-rotator-first-calibrate.desktop" % AUTOSTART_DIR)
+#         run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }') && raspad-auto-rotator & 2>&1 1>/dev/null")
+#         quit()
 
 def rotate(direction):
     if direction == "normal":
@@ -73,29 +75,36 @@ def rotate(direction):
     run_command("xinput --set-prop 'HID 222a:0001' 'Coordinate Transformation Matrix'%s" % touch)
 
 def main():
-    if len(sys.argv) >= 2:
-        if sys.argv[1] == "calibrate":
-            reset = False
-            if len(sys.argv) >= 3:
-                sys.argv[2] == "reset"
-                reset = True
-            calibrate(reset=reset)
-        else:
-            usage()
+    # if len(sys.argv) >= 2:
+    #     if sys.argv[1] == "calibrate":
+    #         reset = False
+    #         if len(sys.argv) >= 3:
+    #             sys.argv[2] == "reset"
+    #             reset = True
+    #         calibrate(reset=reset)
+    #     else:
+    #         usage()
 
     rotate_angle = db.get("rotate_angle", "90")
 
     while True:
         try:
-            acc_list = sensor.sh3001_getimudata('acc','xyz')
+            acc_data = sensor._sh3001_getimudata()[0]
+
+            sensor.acc_max = list(map(max, sensor.acc_max, acc_data))
+            sensor.acc_min = list(map(min, sensor.acc_min, acc_data))
+            sensor.acc_offset = list(map(lambda a, b: (a + b)/2, sensor.acc_max, sensor.acc_min))
+            acc_data = [(acc_data[i] - sensor.acc_offset[i]) for i in range(len(acc_data))]
+            print('\033[K\racc_offset: %s   acc_data: %s' % (sensor.acc_offset, acc_data), end="", flush=True)
+
+            sensor.set_offset()
         except IOError:
             print("read module error.")
             time.sleep(1)
             continue
-        acc_list = [min(2046,i) for i in acc_list]
-        acc_list = [max(-2046,i) for i in acc_list]
-        current_angle_x = (asin(acc_list[0] / 2046.0)) / math.pi * 180
-        current_angle_y = (asin(acc_list[1] / 2046.0)) / math.pi * 180
+        acc_data = [max(-2046, min(2046, i)) for i in acc_data]
+        current_angle_x = (asin(acc_data[0] / 2046.0)) / math.pi * 180
+        current_angle_y = (asin(acc_data[1] / 2046.0)) / math.pi * 180
         time.sleep(0.1)
         if current_angle_y > 45:
             # print("normal")
