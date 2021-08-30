@@ -60,7 +60,7 @@ def main():
             acc_max = list(map(max, sensor.acc_max, acc_data))
             acc_min = list(map(min, sensor.acc_min, acc_data))
             acc_offset = list(map(lambda a, b: (a + b)/2, acc_max, acc_min))
-            if acc_offset ！= sensor.acc_offset:
+            if acc_offset != sensor.acc_offset:
                 sensor.acc_max = acc_max
                 sensor.acc_min = acc_min
                 sensor.acc_offset = acc_offset
