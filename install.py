@@ -5,9 +5,6 @@ import time
 # AUTOSTART_DIR = "/home/%s/.config/autostart/" % USER
 AUTOSTART_DIR = "/etc/xdg/autostart/"
 CONFIG_TXT = "/boot/config.txt"
-CONFIG_TXT_UBUNTU = "/boot/config.txt"
-if not os.isfile("/boot/config.txt"):
-    CONFIG_TXT = CONFIG_TXT_UBUNTU
 errors = []
 
 avaiable_options = ['-h', '--help', '--no-dep', '--no-reboot']
@@ -49,11 +46,13 @@ def install():
         do(msg="install xinput",
             cmd='run_command("apt-get install xinput -y")')
 
-    print("Setup interfaces")
-    do(msg="turn on I2C",
-        cmd='Config(file=%s).set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
-    do(msg="Add I2C module",
-        cmd='Modules().set("i2c-dev")')
+    status, result = run_command("ls /dev/i2c*")
+    if result == "":
+        print("Setup interfaces")
+        do(msg="turn on I2C",
+            cmd='Config(file=%s).set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
+        do(msg="Add I2C module",
+            cmd='Modules().set("i2c-dev")')
 
     print("Setup raspad-auto-rotator service")
     do(msg="copy rotate-helper file",
