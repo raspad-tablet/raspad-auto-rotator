@@ -4,6 +4,10 @@ import time
 
 # AUTOSTART_DIR = "/home/%s/.config/autostart/" % USER
 AUTOSTART_DIR = "/etc/xdg/autostart/"
+CONFIG_TXT = "/boot/config.txt"
+CONFIG_TXT_UBUNTU = "/boot/config.txt"
+if not os.isfile("/boot/config.txt"):
+    CONFIG_TXT = CONFIG_TXT_UBUNTU
 errors = []
 
 avaiable_options = ['-h', '--help', '--no-dep', '--no-reboot']
@@ -35,7 +39,7 @@ def install():
     if "-h" in options or "--help" in options:
         print(usage)
         quit()
-    print("Auto rotator service install process starts")
+    print("Installing RasPad auto rotator")
     print("Install dependency")
     if "--no-dep" not in options:
         do(msg="update apt-get",
@@ -47,7 +51,7 @@ def install():
 
     print("Setup interfaces")
     do(msg="turn on I2C",
-        cmd='Config().set("dtparam=i2c_arm", "on")')
+        cmd='Config(file=%s).set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
     do(msg="Add I2C module",
         cmd='Modules().set("i2c-dev")')
 

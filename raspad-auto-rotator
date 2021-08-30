@@ -66,6 +66,8 @@ def main():
                 sensor.acc_offset = acc_offset
                 sensor.set_offset()
             acc_data = [(acc_data[i] - sensor.acc_offset[i]) for i in range(len(acc_data))]
+            print('\033[K\racc_offset: %s   acc_data: %s' % (sensor.acc_offset, acc_data), end="", flush=True)
+
         except IOError:
             print("read module error.")
             time.sleep(1)
