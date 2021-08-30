@@ -39,12 +39,16 @@ def install():
     print("Installing RasPad auto rotator")
     print("Install dependency")
     if "--no-dep" not in options:
-        do(msg="update apt-get",
-            cmd='run_command("apt-get update")')
+        do(msg="update apt",
+            cmd='run_command("apt update")')
         do(msg="install i2c-tools",
-            cmd='run_command("apt-get install i2c-tools -y")')
+            cmd='run_command("apt install i2c-tools -y")')
+        do(msg="install pip",
+            cmd='run_command("apt install python3-pip -y")')
         do(msg="install xinput",
-            cmd='run_command("apt-get install xinput -y")')
+            cmd='run_command("apt install xinput -y")')
+        do(msg="install setuptools",
+            cmd='run_command("pip3 install setuptools")')
 
     status, result = run_command("ls /dev/i2c*")
     if result == "":
