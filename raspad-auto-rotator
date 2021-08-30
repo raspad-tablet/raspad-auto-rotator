@@ -32,30 +32,6 @@ def usage():
     print("Usage raspad-auto-rotator [calibrate]")
     quit()
 
-# def calibrate(reset=False):
-#     if reset:
-#         sensor.acc_max = [0, 0, 0]
-#         sensor.acc_min = [0, 0, 0]
-#         sensor.acc_offset = [0, 0, 0]
-#     try:
-#         print('RasPad Auto Rotator Calibration!')
-#         print('The Accel SHIM need to calibrate before use, \nor you might encounter incorrect screen rotation')
-#         print('To calibrate again or maybe later, next time run `raspad-auto-rotator calibrate`')
-#         print('')
-#         print('Rotate the device for 720 degree in all 3 axis')
-#         print('Crtl + C to quit if finished')
-#         while True:
-#             sensor.calibrate('acc')
-#     except KeyboardInterrupt:
-#         print("")
-#         sensor.set_offset()
-#         print("Calibrate successfully")
-#         print('Offset: %s' % sensor.acc_offset)
-#         # print("rm %s/.config/autostart/raspad-auto-rotator-first-calibrate.desktop" % HOME)
-#         run_command("sudo rm %s/raspad-auto-rotator-first-calibrate.desktop" % AUTOSTART_DIR)
-#         run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }') && raspad-auto-rotator & 2>&1 1>/dev/null")
-#         quit()
-
 def rotate(direction):
     if direction == "normal":
         display = "normal"
@@ -75,29 +51,21 @@ def rotate(direction):
     run_command("xinput --set-prop 'HID 222a:0001' 'Coordinate Transformation Matrix'%s" % touch)
 
 def main():
-    # if len(sys.argv) >= 2:
-    #     if sys.argv[1] == "calibrate":
-    #         reset = False
-    #         if len(sys.argv) >= 3:
-    #             sys.argv[2] == "reset"
-    #             reset = True
-    #         calibrate(reset=reset)
-    #     else:
-    #         usage()
-
     rotate_angle = db.get("rotate_angle", "90")
 
     while True:
         try:
             acc_data = sensor._sh3001_getimudata()[0]
 
-            sensor.acc_max = list(map(max, sensor.acc_max, acc_data))
-            sensor.acc_min = list(map(min, sensor.acc_min, acc_data))
-            sensor.acc_offset = list(map(lambda a, b: (a + b)/2, sensor.acc_max, sensor.acc_min))
+            acc_max = list(map(max, sensor.acc_max, acc_data))
+            acc_min = list(map(min, sensor.acc_min, acc_data))
+            acc_offset = list(map(lambda a, b: (a + b)/2, acc_max, acc_min))
+            if acc_offset ！= sensor.acc_offset:
+                sensor.acc_max = acc_max
+                sensor.acc_min = acc_min
+                sensor.acc_offset = acc_offset
+                sensor.set_offset()
             acc_data = [(acc_data[i] - sensor.acc_offset[i]) for i in range(len(acc_data))]
-            print('\033[K\racc_offset: %s   acc_data: %s' % (sensor.acc_offset, acc_data), end="", flush=True)
-
-            sensor.set_offset()
         except IOError:
             print("read module error.")
             time.sleep(1)
