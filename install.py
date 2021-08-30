@@ -65,7 +65,7 @@ def install():
     do(msg="create config",
         cmd='run_command("touch /home/%s/.config/raspad-auto-rotator/config")'%USER)
     do(msg="change owner",
-        cmd='run_command("chown -R pi:pi /home/%s/.config/raspad-auto-rotator/")'%USER)
+        cmd='run_command("chown -R {0}:{0} /home/{0}/.config/raspad-auto-rotator/")'.format(USER))
     do(msg="change mode",
         cmd='run_command("chmod -R 700 /home/%s/.config/raspad-auto-rotator/")'%USER)
 
