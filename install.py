@@ -77,7 +77,7 @@ def install():
         cmd='run_command("cp ./rotate-helper /usr/local/bin/")')
     do(msg="add excutable mode for rotate-helper",
         cmd='run_command("chmod +x /usr/local/bin/rotate-helper")')
-    if not os.path.isdir("/etc/raspad-auto-rotator"):
+    if not os.path.isdir(CONFIG_FOLDER):
         do(msg="create config folder",
             cmd='run_command("mkdir %s")' % CONFIG_FOLDER)
         do(msg="change user",
