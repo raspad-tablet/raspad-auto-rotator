@@ -1,0 +1,34 @@
+#!/bin/bash
+
+case "$1" in
+    normal)
+        echo "Display rotate to normal"
+        display=normal
+        touch="1 0 0 0 1 0 0 0 1"
+        ;;
+    inverted)
+        echo "Display rotate to inverted"
+        display=inverted
+        touch="-1 0 1 0 -1 1 0 0 1"
+        ;;
+    left)
+        echo "Display rotate to left"
+        display=left
+        touch="0 -1 1 1 0 0 0 0 1"
+        ;;
+    right)
+        echo "Display rotate to right"
+        display=right
+        touch="0 1 0 -1 0 1 0 0 1"
+        ;;
+    *)
+        echo "Usage: rotate normal/inverted/left/right"
+        exit 0
+esac
+
+DISPLAY=:0 xrandr --output HDMI-1 --rotate $display
+# xinput --set-prop 'wch.cn USB2IIC_CTP_CONTROL' 'Coordinate Transformation Matrix' $touch
+# get name from `xinput -list`
+
+DISPLAY=:0 xinput --set-prop 'ILITEK ILITEK-TP' 'Coordinate Transformation Matrix' $touch
+DISPLAY=:0 xinput --set-prop 'HID 222a:0001' 'Coordinate Transformation Matrix' $touch 

@@ -2,14 +2,18 @@
 import os, sys
 import time
 
-# AUTOSTART_DIR = "/home/%s/.config/autostart/" % USER
+USER = os.environ.get('SUDO_USER')
 AUTOSTART_DIR = "/etc/xdg/autostart/"
+# AUTOSTART_DIR = "/usr/lib/systemd/system/"
 CONFIG_TXT = "/boot/config.txt"
+CONFIG_FOLDER = '/home/%s/.raspad-auto-rotator' % USER
+CONFIG_FILE = '%s/config' % CONFIG_FOLDER
+
+need_reboot = False
 errors = []
 
 avaiable_options = ['-h', '--help', '--no-dep', '--no-reboot']
 
-USER = os.getenv("SUDO_USER")
 if USER == None:
     print("You must run this with sudo")
     quit()
@@ -24,7 +28,7 @@ Options:
     -h         --help       Show this help text and exit
 '''
 def install():
-    global isreboot
+    global isreboot, need_reboot
     options = []
     if len(sys.argv) > 1:
         options = sys.argv[1:]
@@ -57,36 +61,38 @@ def install():
             cmd='Config(file=%s).set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
         do(msg="Add I2C module",
             cmd='Modules().set("i2c-dev")')
+        need_reboot = True
+    status, result = run_command("ls /dev/i2c*")
+    if "i2c" not in result:
+        do(msg="Add i2c previlege to user",
+            cmd='run_command("usermod -aG i2c %s")' % USER)
+        need_reboot = True
 
     print("Setup raspad-auto-rotator service")
-    do(msg="copy rotate-helper file",
+    do(msg="copy raspad-auto-rotator file",
         cmd='run_command("cp ./raspad-auto-rotator /usr/local/bin/")')
-    do(msg="add excutable mode for rotate-helper",
+    do(msg="add excutable mode for raspad-auto-rotator",
         cmd='run_command("chmod +x /usr/local/bin/raspad-auto-rotator")')
-    if not os.path.isdir("/home/%s/.config/raspad-auto-rotator"%USER):
+    do(msg="copy rotate-helper file",
+        cmd='run_command("cp ./rotate-helper /usr/local/bin/")')
+    do(msg="add excutable mode for rotate-helper",
+        cmd='run_command("chmod +x /usr/local/bin/rotate-helper")')
+    if not os.path.isdir("/etc/raspad-auto-rotator"):
         do(msg="create config folder",
-            cmd='run_command("mkdir /home/%s/.config/raspad-auto-rotator/")'%USER)
-    do(msg="create config",
-        cmd='run_command("touch /home/%s/.config/raspad-auto-rotator/config")'%USER)
-    do(msg="change owner",
-        cmd='run_command("chown -R {0}:{0} /home/{0}/.config/raspad-auto-rotator/")'.format(USER))
-    do(msg="change mode",
-        cmd='run_command("chmod -R 700 /home/%s/.config/raspad-auto-rotator/")'%USER)
-
-    # AutoStart
-    if not os.path.isdir("%s" % AUTOSTART_DIR):
-        do(msg="mkdir autostart", cmd='run_command("mkdir %s/")' % AUTOSTART_DIR)
-        # do(msg="change owner",
-        #     cmd='run_command("chown -R pi:pi %s/")' % AUTOSTART_DIR)
+            cmd='run_command("mkdir %s")' % CONFIG_FOLDER)
+        do(msg="change user",
+            cmd='run_command("chown %s:%s %s")' % (USER, USER, CONFIG_FOLDER))
 
     do(msg="copy autostart",
         cmd='run_command("cp ./raspad-auto-rotator.desktop %s")' % AUTOSTART_DIR)
-    # do(msg="change owner",
-    #     cmd='run_command("chown -R pi:pi %s/raspad-auto-rotator.desktop")' % AUTOSTART_DIR)
-    # do(msg="copy autostart",
-    #     cmd='run_command("cp ./raspad-auto-rotator-first-calibrate.desktop %s")' % AUTOSTART_DIR)
-    # do(msg="change owner",
-    #     cmd='run_command("chown -R pi:pi %s/raspad-auto-rotator-first-calibrate.desktop")' % AUTOSTART_DIR)
+    # do(msg="copy service file",
+    #     cmd='run_command("cp ./raspad-auto-rotator.service %s")' % AUTOSTART_DIR)
+    # do(msg="enable service",
+    #     cmd='run_command("systemctl enable raspad-auto-rotator.service")')
+    # do(msg="reload systemctl",
+    #     cmd='run_command("systemctl daemon-reload")')
+    # do(msg="start service",
+    #     cmd='run_command("systemctl start raspad-auto-rotator.service")')
 
     do(msg="Get SH3001 library",
         cmd='run_command("git clone https://github.com/sunfounder/python-sh3001.git")')
@@ -97,9 +103,9 @@ def install():
     os.chdir("../")
 
     if len(errors) == 0:
-        print("\n\n========================================\n")
-        if "--no-reboot" not in options:
-            select = input("Installation needs to reboot. Do you want to reboot right now? (y/N): ")
+        print("\n\n========================================\nInstallation finished!")
+        if "--no-reboot" not in options and need_reboot:
+            select = input("\nInstallation needs to reboot. Do you want to reboot right now? (y/N): ")
             if select.lower() == "y":
                 print("Reboot!")
                 isreboot = True
