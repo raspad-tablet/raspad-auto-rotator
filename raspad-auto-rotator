@@ -51,7 +51,13 @@ def main():
 
     while True:
         try:
-            acc_data = sensor._sh3001_getimudata()[0]
+            # Peek filter
+            data_list = []
+            for _ in range(10):
+                data_list.sppend(sensor._sh3001_getimudata()[0])
+            data_list.remove(max(data_list))
+            data_list.remove(min(data_list))
+            acc_data = sum(data_list) / len(data_list)
 
             acc_max = list(map(max, sensor.acc_max, acc_data))
             acc_min = list(map(min, sensor.acc_min, acc_data))
