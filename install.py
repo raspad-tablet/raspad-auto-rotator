@@ -55,7 +55,7 @@ def install():
             cmd='run_command("pip3 install setuptools")')
 
     status, result = run_command("ls /dev/i2c*")
-    if result == "":
+    if "No such file or directory" in result:
         print("Setup interfaces")
         do(msg="turn on I2C",
             cmd='Config(file=%s).set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
