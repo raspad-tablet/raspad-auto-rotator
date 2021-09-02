@@ -58,7 +58,7 @@ def install():
     if "No such file or directory" in result:
         print("Setup interfaces")
         do(msg="turn on I2C",
-            cmd='Config(file=%s).set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
+            cmd='Config(file="%s").set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
         do(msg="Add I2C module",
             cmd='Modules().set("i2c-dev")')
         need_reboot = True
