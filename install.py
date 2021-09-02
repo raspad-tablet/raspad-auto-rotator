@@ -62,7 +62,7 @@ def install():
         do(msg="Add I2C module",
             cmd='Modules().set("i2c-dev")')
         need_reboot = True
-    status, result = run_command("groups")
+    status, result = run_command("runuser -l %s -c 'groups'" % USER)
     if "i2c" not in result:
         do(msg="Add i2c previlege to user",
             cmd='run_command("usermod -aG i2c %s")' % USER)
@@ -102,7 +102,7 @@ def install():
         cmd='run_command("python3 setup.py install")')
     os.chdir("../")
     do(msg="Start auto rotator",
-        cmd='run_command("runuser -l %s -c \'raspad-auto-rotator reset 2&>1 1&>/dev/null & \'")' %USER)
+        cmd='run_command("runuser -l %s -c \'/usr/local/bin/raspad-auto-rotator reset 2&>1 1&>/dev/null & \'")' %USER)
 
     if len(errors) == 0:
         print("\n\n========================================\nInstallation finished!")
