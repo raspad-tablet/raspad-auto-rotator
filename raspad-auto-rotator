@@ -17,16 +17,6 @@ db = fileDB(db=CONFIG_FILE)
 current_rotation = None
 debug = False
 
-if len(sys.argv) >= 2:
-    if sys.argv[1] == "reset":
-        run_command("rm %s" % CONFIG_FILE)
-        run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }') && raspad-auto-rotator &")
-        quit()
-    elif sys.argv[1] == "debug":
-        debug = True
-    else:
-        usage()
-
 def run_command(cmd=""):
     import subprocess
     if debug:
@@ -94,4 +84,14 @@ def main():
         time.sleep(1)
 
 if __name__ == '__main__':
+    if len(sys.argv) >= 2:
+        if sys.argv[1] == "reset":
+            run_command("rm %s" % CONFIG_FILE)
+            run_command("sudo kill $(ps aux | grep 'raspad-auto-rotator' | awk '{ print $2 }') && raspad-auto-rotator &")
+            quit()
+        elif sys.argv[1] == "debug":
+            debug = True
+        else:
+            usage()
+
     main()
