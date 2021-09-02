@@ -102,7 +102,7 @@ def install():
         cmd='run_command("python3 setup.py install")')
     os.chdir("../")
     do(msg="Start auto rotator",
-        cmd='run_command("runuser -l %s -c \'/usr/local/bin/raspad-auto-rotator reset 2&>1 1&>/dev/null & \'")' %USER)
+        cmd='run_command("runuser -l %s -c \'/usr/local/bin/raspad-auto-rotator reset 2>&1 1>/dev/null & \'")' %USER)
 
     if len(errors) == 0:
         print("\n\n========================================\nInstallation finished!")
