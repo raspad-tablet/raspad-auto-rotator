@@ -52,12 +52,18 @@ def main():
     while True:
         try:
             # Peek filter
-            data_list = []
+            data_list = [[], [], []]
             for _ in range(10):
-                data_list.sppend(sensor._sh3001_getimudata()[0])
-            data_list.remove(max(data_list))
-            data_list.remove(min(data_list))
-            acc_data = sum(data_list) / len(data_list)
+                data = sensor._sh3001_getimudata()[0]
+                for i in range(3):
+                    data_list[i].append(data[i])
+            acc_data = []
+            for axis in data_list:
+                axis.remove(max(axis))
+                axis.remove(min(axis))
+                avg = sum(axis) / len(axis)
+                acc_data.append(avg)
+            # Peek filter end
 
             acc_max = list(map(max, sensor.acc_max, acc_data))
             acc_min = list(map(min, sensor.acc_min, acc_data))
