@@ -33,6 +33,7 @@ def run_command(cmd=""):
 def usage():
     print("Usage raspad-auto-rotator")
     print("    reset      To reset calibration values")
+    print("    stop       To stop auto rotator")
     print("")
     quit()
 
@@ -83,35 +84,44 @@ def main():
                 rotate("right")
         time.sleep(1)
 
+def stop():
+    _, result = run_command("ps aux | grep 'raspad-auto-rotator'")
+    pids = []
+    for line in result.split("\n"):
+        if line == "":
+            continue
+        line = line.split(' ')
+        if "grep" in line:
+            continue
+        if "reset" in line:
+            continue
+        while True:
+            line.remove("")
+            if "" not in line:
+                break
+        if len(line) == 0:
+            continue
+        if line[10] != "python3":
+            continue
+        pids.append(line[1])
+    if len(pids) > 0:
+        pids = " ".join(pids)
+        run_command("sudo kill %s" % pids)
+
+def restart():
+    stop()
+    os.system("/usr/local/bin/raspad-auto-rotator 2>&1 1>/dev/null &")
+
 skip = False
 
 if __name__ == '__main__':
     if len(sys.argv) >= 2:
-        if sys.argv[1] == "reset":
+        if sys.argv[1] == "stop":
+            stop()
+            skip = True
+        elif sys.argv[1] == "reset":
             run_command("rm %s" % CONFIG_FILE)
-            _, result = run_command("ps aux | grep 'raspad-auto-rotator'")
-            pids = []
-            for line in result.split("\n"):
-                if line == "":
-                    continue
-                line = line.split(' ')
-                if "grep" in line:
-                    continue
-                if "reset" in line:
-                    continue
-                while True:
-                    line.remove("")
-                    if "" not in line:
-                        break
-                if len(line) == 0:
-                    continue
-                if line[10] != "python3":
-                    continue
-                pids.append(line[1])
-            if len(pids) > 0:
-                pids = " ".join(pids)
-                run_command("sudo kill %s" % pids)
-            os.system("/usr/local/bin/raspad-auto-rotator 2>&1 1>/dev/null &")
+            restart()
             skip = True
         elif sys.argv[1] == "debug":
             debug = True
