@@ -8,7 +8,7 @@ Currently supports:
 
 - Raspberry Pi OS
 - Twister OS
-- Ubuntu 20.04
+- Ubuntu Desktop 21.04
 
 ## Install
 
