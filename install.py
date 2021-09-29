@@ -94,13 +94,14 @@ def install():
     # do(msg="start service",
     #     cmd='run_command("systemctl start raspad-auto-rotator.service")')
 
-    do(msg="Get SH3001 library",
+    result = do(msg="Get SH3001 library",
         cmd='run_command("git clone https://github.com/sunfounder/python-sh3001.git")')
-    os.chdir("./python-sh3001")
-    print("Install sh3001 python package")
-    do(msg="run setup file",
-        cmd='run_command("python3 setup.py install")')
-    os.chdir("../")
+    if result:
+        os.chdir("./python-sh3001")
+        print("Install sh3001 python package")
+        do(msg="run setup file",
+            cmd='run_command("python3 setup.py install")')
+        os.chdir("../")
     do(msg="Start auto rotator",
         cmd='run_command("runuser -l %s -c \'/usr/local/bin/raspad-auto-rotator reset 2>&1 1>/dev/null & \'")' %USER)
 
