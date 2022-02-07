@@ -215,7 +215,7 @@ def colored(text, color):
     }
     return colors[color] % text
 
-def do(msg="", cmd="", ignore=False):
+def do(msg="", cmd="", ignore=False, warn=False):
     print("[    ] %s..." % (msg), end='', flush=True)
     status, result = eval(cmd)
     if status == 0 or status == None or result == "":
@@ -223,7 +223,9 @@ def do(msg="", cmd="", ignore=False):
         return True
     else:
         if ignore:
-            print('\r[%s]' % colored("Warn", "yellow"))
+            print('\r[ %s ]' % colored("OK", "green"))
+        elif warn:
+            print('\r[%s]%s' % (colored("Warn", "yellow"), result))
         else:
             print('\r[%s]' % colored("Fail", "red"))
             errors.append("%s error:\n  Status:%s\n  Error:%s" %
