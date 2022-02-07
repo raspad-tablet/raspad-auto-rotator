@@ -54,7 +54,7 @@ def uninstall():
 
     do(msg="remove SH3001 library",
         cmd='run_command("pip uninstall python-sh3001")')
-    do(msg="Turn off auto rotator",
+    do(msg="Turn off auto rotator", ignore=True,
         cmd='run_command("sudo kill $(ps aux | grep \'raspad-auto-rotator\' | awk \'{ print $2 }\')")')
 
     if len(errors) == 0:
@@ -215,7 +215,7 @@ def colored(text, color):
     }
     return colors[color] % text
 
-def do(msg="", cmd="", ignore=false):
+def do(msg="", cmd="", ignore=False):
     print("[    ] %s..." % (msg), end='', flush=True)
     status, result = eval(cmd)
     if status == 0 or status == None or result == "":
