@@ -18,6 +18,13 @@ cd raspad-auto-rotator
 sudo python3 install.py
 ```
 
+## Uninstall
+
+```bash
+cd raspad-auto-rotator
+sudo python3 uninstall.py
+```
+
 ## Usage
 
 After installation, it might prompt to reboot, if so, reboot it, and the auto rotation will work. If no reboot prompt. the auto rotation also works right after installation finished.
