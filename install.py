@@ -54,19 +54,15 @@ def install():
         do(msg="install setuptools",
             cmd='run_command("pip3 install setuptools")')
 
-    status, result = run_command("ls /dev/i2c*")
+    _, result = run_command("ls /dev/i2c-1")
     if "No such file or directory" in result:
-        print("Setup interfaces")
         do(msg="turn on I2C",
-            cmd='Config(file="%s").set("dtparam=i2c_arm", "on")' % CONFIG_TXT)
-        do(msg="Add I2C module",
-            cmd='Modules().set("i2c-dev")')
-        need_reboot = True
-    status, result = run_command("runuser -l %s -c 'groups'" % USER)
-    if "i2c" not in result:
-        do(msg="Add i2c previlege to user",
-            cmd='run_command("usermod -aG i2c %s")' % USER)
-        need_reboot = True
+            cmd='run_command("raspi-config nonint do_i2c 0")')
+    # _, result = run_command("runuser -l %s -c 'groups'" % USER)
+    # if "i2c" not in result:
+    #     do(msg="Add i2c previlege to user",
+    #         cmd='run_command("usermod -aG i2c %s")' % USER)
+    #     need_reboot = True
 
     print("Setup raspad-auto-rotator service")
     do(msg="copy raspad-auto-rotator file",
@@ -85,14 +81,6 @@ def install():
 
     do(msg="copy autostart",
         cmd='run_command("cp ./raspad-auto-rotator.desktop %s")' % AUTOSTART_DIR)
-    # do(msg="copy service file",
-    #     cmd='run_command("cp ./raspad-auto-rotator.service %s")' % AUTOSTART_DIR)
-    # do(msg="enable service",
-    #     cmd='run_command("systemctl enable raspad-auto-rotator.service")')
-    # do(msg="reload systemctl",
-    #     cmd='run_command("systemctl daemon-reload")')
-    # do(msg="start service",
-    #     cmd='run_command("systemctl start raspad-auto-rotator.service")')
 
     result = do(msg="Get SH3001 library",
         cmd='run_command("git clone https://github.com/sunfounder/python-sh3001.git")')
@@ -123,123 +111,6 @@ def install():
 
 def cleanup():
     run_command("rm -rf python-sh3001")
-
-class Modules(object):
-    ''' 
-        To setup /etc/modules
-    '''
-
-    def __init__(self, file="/etc/modules"):
-        self.file = file
-        with open(self.file, 'r') as f:
-            self.configs = f.read()
-        self.configs = self.configs.split('\n')
-
-    def remove(self, expected):
-        for config in self.configs:
-            if expected in config:
-                self.configs.remove(config)
-        return self.write_file()
-
-    def set(self, name):
-        have_excepted = False
-        for i in range(len(self.configs)):
-            config = self.configs[i]
-            if name in config:
-                have_excepted = True
-                tmp = name
-                self.configs[i] = tmp
-                break
-
-        if not have_excepted:
-            tmp = name
-            self.configs.append(tmp)
-        return self.write_file()
-
-    def write_file(self):
-        try:
-            config = '\n'.join(self.configs)
-            # print(config)
-            with open(self.file, 'w') as f:
-                f.write(config)
-            return 0, config
-        except Exception as e:
-            return -1, e
-
-class Config(object):
-    ''' 
-        To setup /boot/config.txt
-    '''
-
-    def __init__(self, file="/boot/config.txt"):
-        self.file = file
-        with open(self.file, 'r') as f:
-            self.configs = f.read()
-        self.configs = self.configs.split('\n')
-
-    def remove(self, expected):
-        for config in self.configs:
-            if expected in config:
-                self.configs.remove(config)
-        return self.write_file()
-
-    def set(self, name, value=None):
-        have_excepted = False
-        for i in range(len(self.configs)):
-            config = self.configs[i]
-            if name in config:
-                have_excepted = True
-                tmp = name
-                if value != None:
-                    tmp += '=' + value
-                self.configs[i] = tmp
-                break
-
-        if not have_excepted:
-            tmp = name
-            if value != None:
-                tmp += '=' + value
-            self.configs.append(tmp)
-        return self.write_file()
-
-    def write_file(self):
-        try:
-            config = '\n'.join(self.configs)
-            # print(config)
-            with open(self.file, 'w') as f:
-                f.write(config)
-            return 0, config
-        except Exception as e:
-            return -1, e
-
-class Cmdline(object):
-    ''' 
-        To setup /boot/cmdline.txt
-    '''
-
-    def __init__(self, file="/boot/cmdline.txt"):
-        self.file = file
-        with open(self.file, 'r') as f:
-            cmdline = f.read()
-        self.cmdline = cmdline.strip()
-        self.cmds = self.cmdline.split(' ')
-
-    def remove(self, expected):
-        for cmd in self.cmds:
-            if expected in cmd:
-                self.cmds.remove(cmd)
-        return self.write_file()
-
-    def write_file(self):
-        try:
-            cmdline = ' '.join(self.cmds)
-            # print(cmdline)
-            with open(self.file, 'w') as f:
-                f.write(cmdline)
-            return 0, cmdline
-        except Exception as e:
-            return -1, e
-
 
 def run_command(cmd=""):
     import subprocess
