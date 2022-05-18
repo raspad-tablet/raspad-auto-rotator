@@ -82,8 +82,11 @@ def install():
     do(msg="copy autostart",
         cmd='run_command("cp ./raspad-auto-rotator.desktop %s")' % AUTOSTART_DIR)
 
+    if os.path.isdir("python-sh3001"):
+        do(msg="Remove old SH3001 library",
+            cmd='run_command("rm -rf python-sh3001")')
     result = do(msg="Get SH3001 library",
-        cmd='run_command("git clone https://github.com/sunfounder/python-sh3001.git")')
+        cmd='run_command("git clone --depth=1 https://github.com/sunfounder/python-sh3001.git")')
     if result:
         os.chdir("./python-sh3001")
         print("Install sh3001 python package")
