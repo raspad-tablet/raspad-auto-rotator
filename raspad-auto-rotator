@@ -14,8 +14,8 @@ CONFIG_FILE = '%s/config' % CONFIG_FOLDER
 
 sensor = Sh3001(db=CONFIG_FILE)
 db = fileDB(db=CONFIG_FILE)
-current_rotation = None
-debug = False
+debug = True
+session_type = None
 
 def run_command(cmd=""):
     import subprocess
@@ -37,17 +37,63 @@ def usage():
     print("")
     quit()
 
+def x11_rotate(rotation):
+    touch = {
+        "normal": "1 0 0 0 1 0 0 0 1",
+        "left": "0 -1 1 1 0 0 0 0 1",
+        "right": "0 1 0 -1 0 1 0 0 1",
+        "inverted": "-1 0 1 0 -1 1 0 0 1",
+    }
+    commands = [
+        f"DISPLAY=:0 xrandr --output HDMI-1 --rotate {rotation}",
+        f"DISPLAY=:0 xinput --set-prop 'ILITEK ILITEK-TP' 'Coordinate Transformation Matrix' {touch[rotation]}",
+        f"DISPLAY=:0 xinput --set-prop 'HID 222a:0001' 'Coordinate Transformation Matrix' {touch[rotation]}",
+    ]
+    for command in commands:
+        run_command(command)
+
+def wayland_rotate(rotation):
+    angles = {
+        "normal": "normal",
+        "left": "90",
+        "right": "270",
+        "inverted": "180",
+    }
+    commands = [
+        f"WAYLAND_DISPLAY=wayland-1 wlr-randr --output HDMI-A-1 --transform {angles[rotation]}",
+    ]
+    for command in commands:
+        run_command(command)
+
 def rotate(rotation):
-    global current_rotation
-    if rotation == current_rotation:
-        return
-    current_rotation = rotation
-    if debug:
-        print("Rotate %s" % rotation)
-    run_command("rotate-helper %s" % rotation)
+    if session_type == "x11":
+        x11_rotate(rotation)
+    elif session_type == "wayland":
+        wayland_rotate(rotation)
+
+def check_session_type():
+    _, session_ids = run_command("loginctl list-sessions --no-legend | awk '{print $1}'")
+    session_ids = session_ids.split("\n")
+    for session_id in session_ids:
+        if session_id == "":
+            continue
+        _, session_type = run_command("loginctl show-session %s -p Type --no-legend" % session_id)
+        session_type = session_type.split("=")[1].strip()
+        print(f"session {session_id} type: {session_type}")
+        if session_type == "x11":
+            return "x11"
+        if session_type == "wayland":
+            return "wayland"
 
 def main():
+    global session_type
+    current_rotation = None
+    last_rotation = None
     rotate_angle = db.get("rotate_angle", "90")
+    session_type = check_session_type()
+    if session_type is None:
+        print("No session found")
+        quit()
 
     while True:
         try:
@@ -86,14 +132,18 @@ def main():
         current_angle_y = (asin(acc_data[1] / 2046.0)) / math.pi * 180
         time.sleep(0.1)
         if current_angle_y > 45:
-            rotate("normal")
+            current_rotation = "normal"
         elif current_angle_y < -45:
-            rotate("inverted")
+            current_rotation = "inverted"
         elif rotate_angle == "90":
             if current_angle_x > 45:
-                rotate("left")
+                current_rotation = "left"
             elif current_angle_x < -45:
-                rotate("right")
+                current_rotation = "right"
+        
+        if (current_rotation != last_rotation) and (current_rotation is not None):
+            last_rotation = current_rotation
+            rotate(current_rotation)
         time.sleep(1)
 
 def stop():

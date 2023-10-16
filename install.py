@@ -52,7 +52,7 @@ def install():
         do(msg="install xinput",
             cmd='run_command("apt install xinput -y")')
         do(msg="install setuptools",
-            cmd='run_command("pip3 install setuptools")')
+            cmd='run_command("apt install python3-setuptools")')
 
     _, result = run_command("ls /dev/i2c-1")
     if "No such file or directory" in result:
