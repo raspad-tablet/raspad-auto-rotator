@@ -82,8 +82,15 @@ def install():
     do(msg="copy autostart",
         cmd='run_command("cp ./raspad-auto-rotator.desktop %s")' % AUTOSTART_DIR)
 
+    # Check pip version, if version is greater than 23.1, than add --break-package-system to pip command
+    _, result = run_command("pip3 --version")
+    version = result.split()[1]
+    version = version.split('.')
+    command = "pip3 install git+https://github.com/sunfounder/python-sh3001.git"
+    if int(version[0]) > 23 or (int(version[0]) == 23 and int(version[1]) >= 1):
+        command += " --break-package-system"
     do(msg="Install sh3001 python package",
-        cmd='run_command("pip3 install --break git+https://github.com/sunfounder/python-sh3001.git")')
+        cmd=f'run_command("{command}")')
     do(msg="Start auto rotator",
         cmd='run_command("runuser -l %s -c \'/usr/local/bin/raspad-auto-rotator reset 2>&1 1>/dev/null & \'")' %USER)
 
