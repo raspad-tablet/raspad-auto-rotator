@@ -7,7 +7,7 @@ import math
 import sys
 from sh3001.filedb import fileDB
 import os
-import configparser
+# import configparser
 
 USER = os.environ.get('USER')
 HOME = os.environ.get('HOME')
@@ -16,7 +16,7 @@ CONFIG_FILE = '%s/config' % CONFIG_FOLDER
 
 sensor = Sh3001(db=CONFIG_FILE)
 db = fileDB(db=CONFIG_FILE)
-debug = True
+debug = False
 session_type = None
 
 def run_command(cmd=""):
@@ -61,63 +61,62 @@ def wayland_rotate(rotation):
         "right": "270",
         "inverted": "180",
     }
-    # command = f"WAYLAND_DISPLAY=wayland-1 wlr-randr --output HDMI-A-1 --transform {angles[rotation]}"
     command = f"wlr-randr --output HDMI-A-1 --transform {angles[rotation]}"
     run_command(command)
     # wayland_rotrate_touch(rotation)
 
-def lsusb():
-    _, result = run_command("lsusb")
-    lines = result.strip().split("\n")
-    result = []
-    for line in lines:
-        data = line.split(' ')
-        print(data)
-        pidvid = data[5]
-        name = " ".join(data[6:])
-        result.append((pidvid, name))
-    return result
+# def lsusb():
+#     _, result = run_command("lsusb")
+#     lines = result.strip().split("\n")
+#     result = []
+#     for line in lines:
+#         data = line.split(' ')
+#         print(data)
+#         pidvid = data[5]
+#         name = " ".join(data[6:])
+#         result.append((pidvid, name))
+#     return result
 
-def wayland_rotrate_touch(rotation):
-    # get touch device name
-    AVAILABLE_DEVICES = [
-        "222a:0001"
-    ]
-    touch_device = ""
-    result = lsusb()
-    for item in result:
-        if item[0] in AVAILABLE_DEVICES:
-            touch_device = item[1]
-            break
-    else:
-        print("No touch device found")
-        return
+# def wayland_rotrate_touch(rotation):
+#     # get touch device name
+#     AVAILABLE_DEVICES = [
+#         "222a:0001"
+#     ]
+#     touch_device = ""
+#     result = lsusb()
+#     for item in result:
+#         if item[0] in AVAILABLE_DEVICES:
+#             touch_device = item[1]
+#             break
+#     else:
+#         print("No touch device found")
+#         return
 
-    # check if wayfire.ini exists
-    if not os.path.exists(f"{HOME}/.config/wayfire/wayfire.ini"):
-        print("wayfire.ini not found")
-        # check if wayfire folder exists
-        if not os.path.exists(f"{HOME}.config/wayfire"):
-            os.mkdir(f"{HOME}/.config/wayfire")
-        # create wayfire.ini
-        with open(f"{HOME}/.config/wayfire/wayfire.ini", "w") as f:
-            f.write(f"[input-device:{touch_device}]\n")
-            f.write(f"transform=0\n")
+#     # check if wayfire.ini exists
+#     if not os.path.exists(f"{HOME}/.config/wayfire/wayfire.ini"):
+#         print("wayfire.ini not found")
+#         # check if wayfire folder exists
+#         if not os.path.exists(f"{HOME}.config/wayfire"):
+#             os.mkdir(f"{HOME}/.config/wayfire")
+#         # create wayfire.ini
+#         with open(f"{HOME}/.config/wayfire/wayfire.ini", "w") as f:
+#             f.write(f"[input-device:{touch_device}]\n")
+#             f.write(f"transform=0\n")
 
-    angles = {
-        "normal": "0",
-        "left": "90",
-        "right": "270",
-        "inverted": "180",
-    }
-    config = configparser.ConfigParser()
-    config.read(f"{HOME}/.config/wayfire/wayfire.ini")
-    session = f"input-device:{touch_device}"
-    if session not in config.sections():
-        config.add_section(session)
-    config.set(session, "transform", angles[rotation])
-    with open(f"{HOME}/.config/wayfire/wayfire.ini", 'w') as configfile:
-        config.write(configfile)
+#     angles = {
+#         "normal": "0",
+#         "left": "90",
+#         "right": "270",
+#         "inverted": "180",
+#     }
+#     config = configparser.ConfigParser()
+#     config.read(f"{HOME}/.config/wayfire/wayfire.ini")
+#     session = f"input-device:{touch_device}"
+#     if session not in config.sections():
+#         config.add_section(session)
+#     config.set(session, "transform", angles[rotation])
+#     with open(f"{HOME}/.config/wayfire/wayfire.ini", 'w') as configfile:
+#         config.write(configfile)
 
 def rotate(rotation):
     if session_type == "x11":
